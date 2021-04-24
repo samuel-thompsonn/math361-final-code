@@ -2,6 +2,7 @@ import adaptive_solver as adps
 import numpy as np
 import matplotlib.pyplot as plt
 import models.dorsogna_flat as model
+import models.cuckersmale_flat as cs_model
 import timeit
 
 
@@ -15,12 +16,14 @@ def circle_func(t, y):
     return A @ y
 
 
-def init_flock(N, seed):
+def init_flock(N, seed, spread, max_vel):
     generator = np.random.RandomState(seed)
-    positions = np.empty([N, 4])
+    positions = np.zeros([N, 4])
     for i in range(N):
         for j in range(2):
-            positions[i][j] = generator.uniform(-1, 1)
+            positions[i][j] = generator.uniform(-spread, spread)
+        for j in range(2, 4):
+            positions[i][j] = generator.uniform(-max_vel, max_vel)
     return positions.reshape(N*4)
 
 
@@ -47,16 +50,17 @@ def test_flock():
     tolerances = [10e-2, 10e-3, 10e-5, 10e-8]
 
     flock = model.DorsognaModel(alpha, beta, C_a, ell_a, C_r, ell_r, N)
+    cs_flock = cs_model.CuckerSmaleModel(10, 2, 0.25, 5)
     epsilon = 10e-2
     rk_solver = adps.AdaptiveSolver("tables/rk45_table.txt", epsilon)
-    y0 = init_flock(N, 0)
+    y0 = init_flock(N, 0, 1, 10)
     xval_list = []
     tval_list = []
     times_list = []
     for epsilon in tolerances:
         solver = adps.AdaptiveSolver("tables/rk45_table.txt", epsilon)
         starttime = timeit.default_timer()
-        xvals, tvals = solver.ode_approx(flock.f, 0, 30, y0, 0.00125)
+        xvals, tvals = solver.ode_approx(cs_flock.f, 0, 30, y0, 0.00125)
         endtime = timeit.default_timer()
         times_list.append(endtime - starttime)
         xval_list.append(xvals)
