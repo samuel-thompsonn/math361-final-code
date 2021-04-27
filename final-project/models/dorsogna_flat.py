@@ -1,12 +1,9 @@
 import numpy as np
 
 
-def dx(t, x):
-    return
-
-
-# https://tinyurl.com/swarm361
+# Described in section 2.2 of https://tinyurl.com/swarm361
 def dv(x, alpha, beta, N, U_grad, i):
+    # Returns the change in velocity described by the D'Orsogna et al. model
     # first term: (alpha - beta*|v_i|^2)*v_i, where v_i is the velocity of the bird
     v = x[(4*i)+2:(4*i)+4]
 
@@ -16,6 +13,7 @@ def dv(x, alpha, beta, N, U_grad, i):
 
 
 def calc_second_term(x, U_grad, i, N):
+    # Returns the second term of dv/dt, which depends on the potential function and distance from all other agents
     curr_sum = np.array([0, 0])
     for j in range(N):
         if i == j:
@@ -26,6 +24,17 @@ def calc_second_term(x, U_grad, i, N):
 
 class DorsognaModel:
     def __init__(self, alpha, beta, C_a, ell_a, C_r, ell_r, N):
+        """
+        Simulates 2D flock-like behavior as described in section 2.2 of https://tinyurl.com/swarm361.
+        Includes attraction between agents, repulsion between agents, and air resistance.
+        :param alpha: The magnitude of agents' self-propulsion in the direction they're already facing
+        :param beta: The magnitude of air resistance
+        :param C_a: Strength of attraction between agents
+        :param ell_a: Typical distance at which agents are attracted
+        :param C_r: Strength of repulsion between agents
+        :param ell_r: Typical distance at which agents are repulsed from each other
+        :param N: The number of agents
+        """
         self.alpha = alpha
         self.beta = beta
         self.C_a = C_a
@@ -35,6 +44,13 @@ class DorsognaModel:
         self.N = N
 
     def f(self, t, y):
+        """
+        Calculates the derivative of velocity and position for each agent
+        :param t: Current time
+        :param y: Current positions and velocities of agents, where agent i has position y[4*i:(4*i)+1] and
+                    velocity y[(4*i)+2:(4*i)+4]
+        :return: The derivative y'(y,t) according to the D'Orsogna et al. model with specified parameters
+        """
         y_prime = np.empty([4 * self.N])
         for i in range(0, self.N):
             y_prime[4 * i:(4 * i) + 2] = y[(4 * i) + 2:(4 * i) + 4]
@@ -42,12 +58,8 @@ class DorsognaModel:
         return y_prime
 
     def morse_potential_gradient(self, x, y):
-        # C_a = 100  # attraction strength
-        # C_r = 200  # repulsion (collision avoidance) strength
-        # el_a = 10  # attraction distance
-        # el_r = 0.05  # repulsion distance
-
+        # Returns the net attractive force between agents at positions x and y according to Morse potential
         r = np.linalg.norm(x - y)
-        first_term = (-r / self.ell_r) * (self.C_r * np.exp(-r / self.ell_r))
-        second_term = (-r / self.ell_a) * (-self.C_a * np.exp(-r / self.ell_a))
+        first_term = (-1 / self.ell_r) * (self.C_r * np.exp(-r / self.ell_r))
+        second_term = (-1 / self.ell_a) * (-self.C_a * np.exp(-r / self.ell_a))
         return ((x - y) / r) * (first_term + second_term)

@@ -1,0 +1,30 @@
+unstable_dorsogna.png:
+
+N=5, C_R = 1, C_a = 17, l_R = 4.4, l_a = 1
+The Morse potential has a local max at r ~ 5.6, and it decreases rapidly as we approach
+r=0 and decreases slowly as we approach r=inf. The birds stay circling for around 20 seconds, then
+spiral out away from each other indefinitely at evenly spaced angles.
+Why does this happen? The birds first tend to a ring pattern with constant angular movement with a radius
+greater than 5.6, so when they get beyond this radius, it becomes better to go away from each other.
+Thus there is a bifurcation between going in and going out.
+Also, the error = 10e-2 approximation has a completely different conclusion here, because the situation is
+so touchy. But with only a half-second more calculation, we converge to the correct behavior with the adaptive solver.
+
+morse_potential_mill.png:
+
+C_R = 7.4*20, C_a = 3.8*20, ell_r = 0.7, ell_a = 4.9
+
+example_mill.png:
+
+C_R = 7.4*20, C_a = 3.8*20, ell_r = 0.7, ell_a = 4.9 (same as morse_potential_mill), and starting positions are
+arranged to be evenly spaced on a circle of radius 1 centered at the origin, with tangential velocities to the circle.
+Step size is 0.01, so expected error is (0.01)^5 and (0.01)^4
+
+We see it divide into strata with rings separated from each other by a distance of min(U)
+
+mill_diverging_quantitative:
+
+N=7, parameters are the same as in the other mill examples. The Rk4 and RK5 approximation disagree so much that the
+error is over 500 after 30 seconds (it's 506.2227944159231) but if we zoom in, the qualitative behavior of the
+flocks actually agrees in both cases -- they align velocities and remain at around 2 units away from each other,
+which maximimizes morse potential for the parameters.
